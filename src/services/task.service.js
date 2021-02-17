@@ -28,6 +28,10 @@ class TaskDataService {
   findByDescription(description) {
     return http.get(`/tasks?description=${description}`);
   }
+
+  findByStatus(status){
+    return http.get(`/tasks?status=${status}`);
+  }
 }
 
 export default new TaskDataService();

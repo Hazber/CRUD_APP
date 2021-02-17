@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import TaskDataService from "../services/task.service";
+import moment from 'moment';
 
 export default class AddTask extends Component {
   constructor(props) {
@@ -63,7 +64,7 @@ export default class AddTask extends Component {
       //title: this.state.title,
       description: this.state.description,
       status:this.state.status,
-      enddate:this.state.enddate,
+      enddate:moment(this.state.enddate).format('yyyy-MM-DD'),
       submitted:true
      // file:this.state.file
     };
@@ -134,7 +135,7 @@ export default class AddTask extends Component {
               <div className="form-group">
                 <label htmlFor="enddate">End date</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   className="form-control"
                   id="enddate"
                   required

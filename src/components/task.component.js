@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import TaskDataService from "../services/task.service";
-
+import moment from 'moment';
 export default class Tutorial extends Component {
   constructor(props) {
     super(props);
@@ -19,7 +19,7 @@ export default class Tutorial extends Component {
         id: null,
         //title: "",
         description: "", 
-        enddate:"",
+        enddate:moment("").format('yyyy-MM-DD'),
         status:"none",
         file:null,
       },
@@ -45,7 +45,8 @@ export default class Tutorial extends Component {
   }
 
   onChangeEndDate(e) {
-    const enddate = e.target.value;
+   
+    const enddate =  moment(e.target.value).format('yyyy-MM-DD');
     
     this.setState(prevState => ({
       currentTask: {
@@ -151,21 +152,31 @@ export default class Tutorial extends Component {
               <div className="form-group">
                 <label htmlFor="description">End Date</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   className="form-control"
                   id="enddate"
-                  value={currentTask.enddate}
+                  value={moment(currentTask.enddate).format('yyyy-MM-DD')}
                   onChange={this.onChangeEndDate}
                 />
               </div>
 
               <div className="form-group">
-                <label>
-                  <strong>Status:</strong>
-                </label>
-                {currentTask.status}
+                <label htmlFor="status">Status</label>
+                <select className="form-control" 
+                id="status" 
+                required 
+                onChange={this.onChangeStatus}
+                value={currentTask.status}
+                name="status" >
+                    <option>None</option>
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>Important</option>
+                </select>
               </div>
             </form>
+
+             
 
             <button
               className="badge badge-danger mr-2"

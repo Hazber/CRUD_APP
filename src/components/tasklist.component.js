@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import TaskDataService from "../services/task.service";
 import { Link } from "react-router-dom";
-
+import moment from 'moment';
 export default class TasksList extends Component {
   constructor(props) {
     super(props);
     this.onChangeSearchDescription = this.onChangeSearchDescription.bind(this);
+    this.onChangeSearchStatus = this.onChangeSearchStatus.bind(this);
+    this.CheckColor=this.CheckColor.bind(this);
     this.retrieveTasks = this.retrieveTasks.bind(this);
     this.refreshList = this.refreshList.bind(this);
     this.setActiveTask = this.setActiveTask.bind(this);
@@ -17,7 +19,8 @@ export default class TasksList extends Component {
       tasks: [],
       currentTask: null,
       currentIndex: -1,
-      searchDescription: ""
+      searchDescription: "",
+      searchStatus:"none"
     };
   }
 
@@ -30,6 +33,37 @@ export default class TasksList extends Component {
 
     this.setState({
       searchDescription: searchDescription
+    });
+  
+ 
+  }
+
+  CheckColor(task)
+  {
+    switch (task.status){
+      case 'none':
+         return '';
+      break;
+      case 'low':
+        return 'LightBlue';
+      break;
+      case 'medium':
+        return 'DeepSkyBlue';
+      break;
+      case 'important':
+        return 'RoyalBlue'  
+      break;
+
+    }
+
+
+
+  }
+
+  onChangeSearchStatus(e){
+    const searchStatus= e.target.value;
+    this.setState({
+      searchStatus: searchStatus
     });
   }
 
@@ -98,27 +132,59 @@ export default class TasksList extends Component {
       });
   }
 
+
+  searchStatus(){
+   
+    TaskDataService.findByStatus(this.state.searchStatus)
+    .then(response => {
+      this.setState({
+        tasks: response.data
+      });
+      console.log(response.data);
+    })
+    .catch(e => {
+      console.log(e);
+    });
+
+
+  }
   render() {
     const { tasks, currentTask, currentIndex,searchDescription } = this.state;
-
+<div className="form-group">
+                <label htmlFor="status">Status</label>
+               
+              </div>
     return (
       <div className="list row">
         <div className="col-md-8">
           <div className="input-group mb-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search by description"
-              value={searchDescription}
-              onChange={this.onChangeSearchDescription}
-            />
+          <select className="form-control" 
+                id="searchstatus" 
+                required 
+                 onChange={this.onChangeSearchStatus}
+               
+                name="searchstatus" >
+                    <option>None</option>
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>Important</option>
+                </select>
             <div className="input-group-append">
               <button
                 className="btn btn-outline-secondary"
                 type="button"
                 onClick={this.searchDescription}
               >
-                Search
+                Filter
+              </button>
+            </div>
+            <div className="input-group-append">
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={this.retrieveTasks}
+              >
+                Reset filtering
               </button>
             </div>
           </div>
@@ -130,6 +196,7 @@ export default class TasksList extends Component {
             {tasks &&
               tasks.map((task, index) => (
                 <li
+                  style={    { backgroundColor: (this.CheckColor(task)) }}
                   className={
                     "list-group-item " +
                     (index === currentIndex ? "active" : ""
@@ -167,7 +234,7 @@ export default class TasksList extends Component {
                 <label>
                   <strong>End date:</strong>
                 </label>{}
-                {currentTask.enddate}
+                {moment(currentTask.enddate).format('yyyy-MM-DD')}
               </div>
               <div>
                 <label>
