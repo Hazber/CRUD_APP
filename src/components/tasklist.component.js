@@ -13,7 +13,7 @@ export default class TasksList extends Component {
     this.setActiveTask = this.setActiveTask.bind(this);
     this.removeAllTasks = this.removeAllTasks.bind(this);
     this.doneTask=this.doneTask.bind(this);
-    this.searchDescription = this.searchDescription.bind(this);
+    this.searchStatus = this.searchStatus.bind(this);
 
     this.state = {
       tasks: [],
@@ -118,21 +118,7 @@ export default class TasksList extends Component {
         console.log(e);
       });
   }
-
-  searchDescription() {
-    TaskDataService.findByDescription(this.state.searchDescription)
-      .then(response => {
-        this.setState({
-          tasks: response.data
-        });
-        console.log(response.data);
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  }
-
-
+  
   searchStatus(){
    
     TaskDataService.findByStatus(this.state.searchStatus)
@@ -145,8 +131,6 @@ export default class TasksList extends Component {
     .catch(e => {
       console.log(e);
     });
-
-
   }
   render() {
     const { tasks, currentTask, currentIndex,searchDescription } = this.state;
@@ -173,7 +157,7 @@ export default class TasksList extends Component {
               <button
                 className="btn btn-outline-secondary"
                 type="button"
-                onClick={this.searchDescription}
+                onClick={this.searchStatus}
               >
                 Filter
               </button>
@@ -241,6 +225,12 @@ export default class TasksList extends Component {
                   <strong>Status:</strong>
                 </label>{" "}
                 {currentTask.status}
+              </div>
+              <div>
+                <label>
+                  <strong>Files:</strong>
+                </label>{" "}
+                {currentTask.file}
               </div>
 
               <Link

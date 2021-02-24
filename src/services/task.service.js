@@ -5,6 +5,12 @@ class TaskDataService {
     return http.get("/tasks");
   }
 
+  fileUpload(id,data){
+    console.log(data);
+    return http.post(`/tasks/file?taskId=${id}`,data);//настя
+
+  }
+
   get(id) {
     return http.get(`/tasks/${id}`);
   }
@@ -23,10 +29,6 @@ class TaskDataService {
 
   deleteAll() {
     return http.delete(`/tasks`);
-  }
-
-  findByDescription(description) {
-    return http.get(`/tasks?description=${description}`);
   }
 
   findByStatus(status){

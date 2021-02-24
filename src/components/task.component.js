@@ -4,24 +4,22 @@ import moment from 'moment';
 export default class Tutorial extends Component {
   constructor(props) {
     super(props);
-    //this.onChangeTitle = this.onChangeTitle.bind(this);
+
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onChangeEndDate=this.onChangeEndDate.bind(this);
     this.onChangeStatus=this.onChangeStatus.bind(this);
-    //// this.onChangeFile=this.onChangeFile.bind(this);
+    this.onChangeFile=this.onChangeFile.bind(this);
     this.getTask = this.getTask.bind(this);
-    //this.updatePublished = this.updatePublished.bind(this);
     this.updateTask = this.updateTask.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
 
     this.state = {
       currentTask: {
         id: null,
-        //title: "",
         description: "", 
         enddate:moment("").format('yyyy-MM-DD'),
         status:"none",
-        file:null,
+        file:[],
       },
       message: ""
     };
@@ -31,6 +29,23 @@ export default class Tutorial extends Component {
     this.getTask(this.props.match.params.id);
   }
 
+  onChangeFile(e){
+
+  const file= e.target.files[0];
+  console.log(file);
+  const nf=this.state.currentTask.file;
+ 
+  nf.push(file);
+  this.setState(function(prevState) {
+    return {
+      currentTask: {
+        ...prevState.currentTask,
+   //     file: nf
+      }
+    };
+  });
+
+  }
   onChangeDescription(e) {
     const description = e.target.value;
 
@@ -70,8 +85,9 @@ export default class Tutorial extends Component {
   getTask(id) {
     TaskDataService.get(id)
       .then(response => {
+        response.data.enddate=moment(response.data.enddate).format('yyyy-MM-DD');
         this.setState({
-          currentTask: response.data
+          currentTask: response.data,
         });
         console.log(response.data);
       })
@@ -80,35 +96,23 @@ export default class Tutorial extends Component {
       });
   }
 
- /* updatePublished(status) {
-    var data = {
-      id: this.state.currentTask.id,
-      title: this.state.currentTask.title,
-      description: this.state.currentTask.description,
-      published: status
-    };
-
-    TaskDataService.update(this.state.currentTask.id, data)
-      .then(response => {
-        this.setState(prevState => ({
-          currentTask: {
-            ...prevState.currentTask,
-            published: status
-          }
-        }));
-        console.log(response.data);
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  }
-*/
   updateTask() {
     TaskDataService.update(
       this.state.currentTask.id,
       this.state.currentTask
     )
       .then(response => {
+        
+        this.state.currentTask.file.map((item,i)=>{
+          const formData = new FormData();
+          formData.append('file', item);
+          TaskDataService.fileUpload(response.data.id,formData).
+          then(response=>{
+            console.log("Файл отправлен");
+          })
+          .catch(e=>{console.log(e)});
+        })
+
         console.log(response.data);
         this.setState({
           message: "The task was updated successfully!"
@@ -173,6 +177,16 @@ export default class Tutorial extends Component {
                     <option>Medium</option>
                     <option>Important</option>
                 </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="file"> Upload your files</label>
+                <input type="file" multiple value={currentTask.file}  className="form-control-file" id="file" onChange={this.onChangeFile} />
+                <button
+                className="badge badge-danger mr-2"
+                onClick={this.deleteTask}
+              >
+              Delete file
+              </button>
               </div>
             </form>
 

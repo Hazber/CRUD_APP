@@ -9,28 +9,19 @@ export default class AddTask extends Component {
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onChangeEndDate = this.onChangeEndDate.bind(this);
     this.onChangeStatus = this.onChangeStatus.bind(this);
-    this.onCgangeFile = this.onChangeFile.bind(this);
+    this.onChangeFile = this.onChangeFile.bind(this);
     this.saveTask = this.saveTask.bind(this);
     this.newTask = this.newTask.bind(this);
+   // this.deleteFile=this.deleteFile.bind(this);
 
     this.state = {
-      //id: null,
-      //title: "",
+     
       description: "", 
-      //enddate,
       status:"none",
-      file:null,
-     // published: false,
-
+      file:[],
       submitted: false
     };
   }
-
- /* onChangeTitle(e) {
-    this.setState({
-      title: e.target.value
-    });
-  }*/
 
   onChangeDescription(e) {
     this.setState({
@@ -40,7 +31,7 @@ export default class AddTask extends Component {
 
   onChangeEndDate(e) {
     this.setState({
-      enddate: e.target.value
+      enddate:moment(e.target.value).format('yyyy-MM-DD')
     });
   }
 
@@ -51,36 +42,58 @@ export default class AddTask extends Component {
     });
   }
   
-
-  
   onChangeFile(e) {
+  const file= e.target.files[0];
+  const nf=this.state.file;
+  nf.push(file);
     this.setState({
-      file: e.target.value
+    file:nf// e.target.files
     });
   }
 
+  //deleteFile(file){
+  //  const delfile=this.state.file[0];
+ //   const index = delfile.indexOf(file);
+  //      delfile.splice(index, 1);
+  //  this.setState({
+ //     file:delfile
+  //  });
+
+
+  //}
+
   saveTask() {
+
     var data = {
-      //title: this.state.title,
+     
       description: this.state.description,
       status:this.state.status,
       enddate:moment(this.state.enddate).format('yyyy-MM-DD'),
-      submitted:true
-     // file:this.state.file
+      submitted:true,
+      file:this.state.file
     };
 
-    
+    console.log(data.file);
+   
     TaskDataService.create(data)
       .then(response => {
+
+        data.file.map((item,i)=>{
+        const formData = new FormData();
+        formData.append('file', item);
+        TaskDataService.fileUpload(response.data.id,formData).
+        then(response=>{
+          console.log("Файл отправлен");
+        })
+        .catch(e=>{console.log(e)});
+      })
         this.setState({
           //id: response.data.id,
           title: response.data.title,
           description: response.data.description,
           status:response.data.status,
-          enddate:response.data.enddate,
+          enddate:moment(response.data.enddate).format('yyyy-MM-DD'),
           file:response.data.file,
-         // published: response.data.published,
-
           submitted: true
         });
         console.log(response.data);
@@ -92,18 +105,13 @@ export default class AddTask extends Component {
 
   newTask() {
     this.setState({
-        //id: null,
-        //title: "",
         description: "", 
-        
         status:"none",
-        //file:null,
-       // published: false,
-  
+        file:[],
         submitted: false
     });
   }
-//TODO: Modify date
+
   render() {
     return (
         <div className="submit-form">
@@ -160,10 +168,18 @@ export default class AddTask extends Component {
                 </select>
               </div>
 
-
+              
+              
               <div className="form-group">
-                <label htmlFor="file"> Upload your files</label>
-                <input type="file" className="form-control-file" id="file" onChange={this.onCgangeFile} />
+              <label htmlFor="file"> Upload your files</label>
+            
+                <input type="file" multiple encType="multipart/form-data" name="file" className="form-control-file" id="file" onChange={this.onChangeFile} />
+                <button
+                className="badge badge-danger mr-2"
+                //onClick={this.deleteFile(this.state.file)}
+              >
+              Delete file
+              </button>
               </div>
 
 
