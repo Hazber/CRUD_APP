@@ -2,7 +2,7 @@ const sql = require("./dbmodel.js");
 
 
 const Task = function(task) {
- // this.id = Task.id;
+
   this.description = task.description;
   this.enddate= task.enddate;
   this.status= task.status;
@@ -12,7 +12,7 @@ const Task = function(task) {
 
 
 Task.create = (newTask, result) => {
-
+  
   const queryInsert = "INSERT INTO todo SET ?";
   sql.query(queryInsert, newTask, (err, res) => {
     if (err) {
@@ -22,17 +22,40 @@ Task.create = (newTask, result) => {
     }
     console.log("Создана задача", { id: res.insertId, ...newTask });
     result(null, { id: res.insertId, ...newTask }); 
-    //используем spread для отправки наших аргументов в базу данных
 
   });
 };
 
-//получение дела по одному inner_id
+Task.FileLoad=(taskId,files,result)=>{
+  
+  const queryUpdate = "UPDATE todo SET file = ? WHERE id = ?";
+  sql.query(
+    queryUpdate,
+    [files, taskId],
+    (err, res) => {
+      if (err) {
+        console.log("error: ", err);
+        result(null, err);
+        return;
+      }
+
+      if (res.affectedRows == 0) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+
+      console.log("Обновлен файл у таски ", { id: taskId });
+      result(null, { id: taskId });
+    }
+  );
+
+}
+
 Task.findById = (taskId, result) => {
   const queryFintbyId = `SELECT * FROM todo WHERE id = '${taskId}'`;
   sql.query(queryFintbyId, (err, res) => {
     if (err) {
-      console.log("error: ", err);
+
       result(err, null);
       return;
     }
@@ -42,35 +65,22 @@ Task.findById = (taskId, result) => {
       result(null, res[0]);
       return;
     }
-    // когда ничего не удалось найти
+
     result({ kind: "not_found" }, null);
   });
 };
 
 
-///получение дела по одному inner_id
-Task.findByDescription = (description, result) => {
-  const queryFintbyDescript = `SELECT * FROM todo WHERE description = '${description}'`;
-  sql.query(queryFintbyDescript, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
-      return;
-    }
-
-    if (res.length) {
-      console.log("найдена задача: ", res[0]);
-      result(null, res[0]);
-      return;
-    }
-    // когда ничего не удалось найти
-    result({ kind: "not_found" }, null);
-  });
-};
-
-
- Task.getAll = result => {
-   const queryAll = "SELECT description,status,enddate,file, id FROM todo";
+ Task.getAll = (status,result) => {
+   
+  console.log("error: ", status);
+  if (status !== undefined){
+    queryAll = `SELECT * FROM todo WHERE status = '${status}'`;
+  }else{
+   queryAll = "SELECT description,status,enddate,file, id FROM todo";
+  }
+   
+   
   sql.query(queryAll, (err, res) => {
     if (err) {
       console.log("error: ", err);
@@ -82,7 +92,6 @@ Task.findByDescription = (description, result) => {
   });
 };
 
-//мы будем обновлять дела по id
 Task.updateById = (id, Task, result) => {
   const queryUpdate = "UPDATE todo SET description = ?,status = ?,enddate = ?,file = ? WHERE id = ?";
   sql.query(
@@ -107,9 +116,9 @@ Task.updateById = (id, Task, result) => {
 };
 
 
-
 Task.remove = (id, result) => {
   const queryDelete = "DELETE FROM todo WHERE id = ?";
+  
   sql.query(queryDelete, id, (err, res) => {
     if (err) {
       console.log("error: ", err); 
