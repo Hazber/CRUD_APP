@@ -32,9 +32,9 @@ app.use(express.static(__dirname));
 
 //app.use(multer({storage:storageConfig}).single("file"));
 
-app.get("/", (req, res) => {
-  res.json({ message: "Это стартовая страница нашего приложения" });
-});
+// app.get("/", (req, res) => {
+//   res.json({ message: "Это стартовая страница нашего приложения" });
+// });
 
 require("./app/routes/task.routes.js")(app);
 

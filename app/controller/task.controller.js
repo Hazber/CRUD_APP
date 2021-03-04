@@ -2,7 +2,6 @@ const Task = require("../model/task.model.js");
 const fs = require('fs-extra');
 const e = require("express");
 const { FileLoad } = require("../model/task.model.js");
-//var file_list ='';
 
 exports.create = (req, res) => {
   
@@ -146,7 +145,7 @@ exports.update = (req, res) => {
       } else res.status(200).send(data);
     }
   );
-  file_list='';
+  //file_list='';
 };
 
 exports.delete = (req, res) => {
