@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import TaskDataService from "../services/task.service";
 import moment from 'moment';
+let filecount=0;
+let variable ="";
+let massvariable=[];
 export default class Tutorial extends Component {
   constructor(props) {
     super(props);
@@ -12,14 +15,18 @@ export default class Tutorial extends Component {
     this.getTask = this.getTask.bind(this);
     this.updateTask = this.updateTask.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
+    this.onFileDelete=this.onFileDelete.bind(this);
+    this.onOldFileDelete=this.onOldFileDelete.bind(this);
 
     this.state = {
       currentTask: {
         id: null,
         description: "", 
         enddate:moment("").format('yyyy-MM-DD'),
-        status:"none",
+        status:"None",
         file:[],
+        oldfile:[],
+        file_list:[],
       },
       message: ""
     };
@@ -28,18 +35,56 @@ export default class Tutorial extends Component {
   componentDidMount() {
     this.getTask(this.props.match.params.id);
   }
+  onOldFileDelete(file){
+    const fl=massvariable;
+    const index = fl.indexOf(file);
+    if (index > -1)
+        fl.splice(index, 1);
+       
+  }
+  onFileDelete(file){
+
+    const fl=this.state.currentTask.file_list;
+    const index = fl.indexOf(file);
+    if (index > -1)
+        fl.splice(index, 1);
+    
+    const f=this.state.currentTask.file;
+    if (f.length!=0){
+    f.splice(index-filecount, 1);
+    }
+      this.setState(function(prevState) {
+        return {
+          currentTask: {
+            ...prevState.currentTask,
+            file:f, 
+            file_list: fl
+      
+          }
+        };
+      });
+  }
 
   onChangeFile(e){
-
-  const file= e.target.files[0];
-  console.log(file);
-  const nf=this.state.currentTask.file;
- 
-  nf.push(file);
-  this.setState(function(prevState) {
+    
+    const file= e.target.files[0];
+    var nf=[];
+    const f=this.state.currentTask.file_list;
+    if(this.state.currentTask.file!=null){ 
+    const nf=this.state.currentTask.file;
+    
+    }
+    nf.push(file);
+    //console.log("Name file"+f);
+    if(f.indexOf(file.name)==-1)
+              f.push(file.name);
+    this.setState(function(prevState) {
     return {
       currentTask: {
         ...prevState.currentTask,
+        file:nf,// e.target.files
+        file_list:f
+        
    //     file: nf
       }
     };
@@ -86,10 +131,21 @@ export default class Tutorial extends Component {
     TaskDataService.get(id)
       .then(response => {
         response.data.enddate=moment(response.data.enddate).format('yyyy-MM-DD');
+        response.data.file_list=[];
+        if (response.data.file!=null){
+        variable=response.data.file;
+        //console.log("aaaaaaaaaaaaaaaaaa"+response.data.file);
+        massvariable=variable.split(',');
+        response.data.file=[];
+        response.data.file_list=massvariable;
+        }
+
         this.setState({
           currentTask: response.data,
         });
-        console.log(response.data);
+        
+        
+        
       })
       .catch(e => {
         console.log(""+e.message);
@@ -97,22 +153,27 @@ export default class Tutorial extends Component {
   }
 
   updateTask() {
+
+    if (this.state.currentTask.file!=null){
+      
+      //console.log( this.state.currentTask.file);
+      this.state.currentTask.file.map((item,i)=>{
+        const formData = new FormData();
+        formData.append('file', item);
+        TaskDataService.fileUpload(this.state.currentTask.id,formData).
+        then(response=>{
+          console.log("Файл отправлен");
+        })
+        .catch(e=>{console.log(e)});
+      })
+    }
+    console.log(this.state.currentTask.file_list);
     TaskDataService.update(
       this.state.currentTask.id,
       this.state.currentTask
     )
       .then(response => {
         
-        this.state.currentTask.file.map((item,i)=>{
-          const formData = new FormData();
-          formData.append('file', item);
-          TaskDataService.fileUpload(response.data.id,formData).
-          then(response=>{
-            console.log("Файл отправлен");
-          })
-          .catch(e=>{console.log(e)});
-        })
-
         console.log(response.data);
         this.setState({
           message: "The task was updated successfully!"
@@ -121,6 +182,8 @@ export default class Tutorial extends Component {
       .catch(e => {
         console.log(e);
       });
+      massvariable=[];
+      variable='';
   }
 
   deleteTask() {    
@@ -179,14 +242,19 @@ export default class Tutorial extends Component {
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="file"> Upload your files</label>
-                <input type="file" multiple value={currentTask.file}  className="form-control-file" id="file" onChange={this.onChangeFile} />
-                <button
-                className="badge badge-danger mr-2"
-                onClick={this.deleteTask}
-              >
-              Delete file
-              </button>
+                <label htmlFor="file" >Upload your files </label>
+                <input type="file"   multiple encType="multipart/form-data" className="form-control-file" id="file" onChange={this.onChangeFile} />
+                {
+                //console.log(massvariable),
+                currentTask.file_list.map((file, index) => (
+                
+                <div key={index}>
+                <label className={'Note__text'+(index)} >{file}</label>
+                <button className="btn btn-sm btn-danger" onClick={this.onFileDelete.bind(null,file)}>Delete</button>
+                </div>
+                
+              ))
+            } 
               </div>
             </form>
 
@@ -206,7 +274,9 @@ export default class Tutorial extends Component {
             >
               Update
             </button>
+            
             <p>{this.state.message}</p>
+            
           </div>
         ) : (
           <div>

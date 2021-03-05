@@ -41,22 +41,20 @@ export default class TasksList extends Component {
   CheckColor(task)
   {
     switch (task.status){
-      case 'none':
+      case 'None':
          return '';
       break;
-      case 'low':
+      case 'Low':
         return 'LightBlue';
       break;
-      case 'medium':
+      case 'Medium':
         return 'DeepSkyBlue';
       break;
-      case 'important':
+      case 'Important':
         return 'RoyalBlue'  
       break;
 
     }
-
-
 
   }
 

@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import TaskDataService from "../services/task.service";
 import moment from 'moment';
-
+let filecount=0;
+let userId=0;
 export default class AddTask extends Component {
   constructor(props) {
     super(props);
@@ -12,13 +13,16 @@ export default class AddTask extends Component {
     this.onChangeFile = this.onChangeFile.bind(this);
     this.saveTask = this.saveTask.bind(this);
     this.newTask = this.newTask.bind(this);
+    this.onFileDelete = this.onFileDelete.bind(this);
    // this.deleteFile=this.deleteFile.bind(this);
 
     this.state = {
      
       description: "", 
-      status:"none",
+      status:"None",
       file:[],
+      file_list:[],
+      enddate:moment(new Date).format('yyyy-MM-DD'),
       submitted: false
     };
   }
@@ -45,48 +49,66 @@ export default class AddTask extends Component {
   onChangeFile(e) {
   const file= e.target.files[0];
   const nf=this.state.file;
+  const f=this.state.file_list;
   nf.push(file);
+  if(f.indexOf(file.name)==-1)
+            f.push(file.name);
     this.setState({
-    file:nf// e.target.files
+    file:nf,
+    file_list:f
     });
   }
+  
+  onFileDelete(file){
 
-  //deleteFile(file){
-  //  const delfile=this.state.file[0];
- //   const index = delfile.indexOf(file);
-  //      delfile.splice(index, 1);
-  //  this.setState({
- //     file:delfile
-  //  });
-
-
-  //}
+    const fl=this.state.file_list;
+    const index = fl.indexOf(file);
+    if (index > -1)
+        fl.splice(index, 1);
+    
+    const f=this.state.file;
+    f.splice(index-filecount, 1);
+    this.setState(
+      {file:f, 
+      file_list: fl}
+      );
+  }
 
   saveTask() {
-
+    
     var data = {
      
       description: this.state.description,
       status:this.state.status,
       enddate:moment(this.state.enddate).format('yyyy-MM-DD'),
       submitted:true,
-      file:this.state.file
+      file:this.state.file,
+      file_list:this.state.file_list
     };
+    
+    //console.log("FILE LIST"+this.state.file_list);
+    // data.file.map((item,i)=>{
+    //   const formData = new FormData();
+    //   formData.append('file', item);
+    //   TaskDataService.fileUpload(data.id,formData).
+    //   then(response=>{
+    //     console.log("Файл отправлен");
+    //   })
+    //   .catch(e=>{console.log(e)});
+    // })
 
-    console.log(data.file);
-   
     TaskDataService.create(data)
       .then(response => {
-
         data.file.map((item,i)=>{
-        const formData = new FormData();
-        formData.append('file', item);
-        TaskDataService.fileUpload(response.data.id,formData).
-        then(response=>{
-          console.log("Файл отправлен");
+          const formData = new FormData();
+          formData.append('file', item);
+          TaskDataService.fileUpload(response.data.id,formData).
+          then(response=>{
+            console.log("Файл отправлен");
+          })
+          .catch(e=>{console.log(e)});
         })
-        .catch(e=>{console.log(e)});
-      })
+        
         this.setState({
           //id: response.data.id,
           title: response.data.title,
@@ -97,6 +119,7 @@ export default class AddTask extends Component {
           submitted: true
         });
         console.log(response.data);
+       
       })
       .catch(e => {
         console.log(e.message);
@@ -104,10 +127,12 @@ export default class AddTask extends Component {
   }
 
   newTask() {
+    filecount=0;
     this.setState({
         description: "", 
         status:"none",
         file:[],
+        file_list:[],
         submitted: false
     });
   }
@@ -174,12 +199,17 @@ export default class AddTask extends Component {
               <label htmlFor="file"> Upload your files</label>
             
                 <input type="file" multiple encType="multipart/form-data" name="file" className="form-control-file" id="file" onChange={this.onChangeFile} />
-                <button
-                className="badge badge-danger mr-2"
-                //onClick={this.deleteFile(this.state.file)}
-              >
-              Delete file
-              </button>
+               
+            {
+              this.state.file_list.map((file, index) => (
+                
+                <div key={index}>
+                <label className={'Note__text'+(index)} >{file}</label>
+                <button className="btn btn-sm btn-danger" onClick={this.onFileDelete.bind(null,file)}>Delete</button>
+                </div>
+                
+              ))}
+          
               </div>
 
 
